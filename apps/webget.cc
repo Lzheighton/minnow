@@ -16,20 +16,17 @@ void get_URL( const string& host, const string& path )
   // debug( "get_URL() function not yet implemented" );
 
   // 建立TCPSocket连接
-  Address target(host, "http");
+  Address target( host, "http" );
   TCPSocket http_tcp;
-  http_tcp.connect(target);
+  http_tcp.connect( target );
 
   // 跟telnet一样，向TCPSocket直接写入HTTP报文
-  http_tcp.write("GET " + path + " HTTP/1.1\r\n"
-                      + "HOST: " + host + "\r\n"
-                      + "Connection: close\r\n"
-                      + "\r\n");
+  http_tcp.write( "GET " + path + " HTTP/1.1\r\n" + "HOST: " + host + "\r\n" + "Connection: close\r\n" + "\r\n" );
 
   // 读取返回内容
-  while(!http_tcp.eof()){
+  while ( !http_tcp.eof() ) {
     string s;
-    http_tcp.read(s);
+    http_tcp.read( s );
     cout << s;
   }
 
