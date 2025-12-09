@@ -1,3 +1,4 @@
+#include "address.hh"
 #include "debug.hh"
 #include "socket.hh"
 
@@ -11,8 +12,28 @@ using namespace std;
 namespace {
 void get_URL( const string& host, const string& path )
 {
-  debug( "Function called: get_URL( \"{}\", \"{}\" )", host, path );
-  debug( "get_URL() function not yet implemented" );
+  debug( R"(Function called: get_URL( "{}", "{}" ))", host, path );
+  // debug( "get_URL() function not yet implemented" );
+
+  // 建立TCPSocket连接
+  Address target(host, "http");
+  TCPSocket http_tcp;
+  http_tcp.connect(target);
+
+  // 跟telnet一样，向TCPSocket直接写入HTTP报文
+  http_tcp.write("GET " + path + " HTTP/1.1\r\n"
+                      + "HOST: " + host + "\r\n"
+                      + "Connection: close\r\n"
+                      + "\r\n");
+
+  // 读取返回内容
+  while(!http_tcp.eof()){
+    string s;
+    http_tcp.read(s);
+    cout << s;
+  }
+
+  http_tcp.close();
 }
 } // namespace
 

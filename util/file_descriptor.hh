@@ -16,6 +16,8 @@ public:
 
   // Read from the file descriptor into `buffer` (a single string) or `buffers` (a vector of strings)
   void read( std::string& buffer );
+
+  // 参数为vector的重载，用于一组缓冲区，在buffers中给定resize后的string对象可切分传入数据（获取header等)
   void read( std::vector<std::string>& buffers );
 
   // `write_all` writes a buffer completely.

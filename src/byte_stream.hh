@@ -4,6 +4,9 @@
 #include <string>
 #include <string_view>
 
+#include <deque>
+#include<memory>
+
 class Reader;
 class Writer;
 
@@ -11,6 +14,11 @@ class ByteStream
 {
 public:
   explicit ByteStream( uint64_t capacity );
+  ByteStream(const ByteStream& other);
+  ByteStream( ByteStream&& other ) noexcept = default;
+  ~ByteStream() = default;
+  ByteStream& operator=(const ByteStream& other);
+  ByteStream& operator=( ByteStream&& other ) noexcept = default;
 
   // Helper functions (provided) to access the ByteStream's Reader and Writer interfaces
   Reader& reader();
@@ -18,13 +26,30 @@ public:
   Writer& writer();
   const Writer& writer() const;
 
-  void set_error() { error_ = true; };       // Signal that the stream suffered an error.
-  bool has_error() const { return error_; }; // Has the stream had an error?
+  void set_error() { impl_->error_ = true; };       // Signal that the stream suffered an error.
+  bool has_error() const { return impl_->error_; }; // Has the stream had an error?
 
 protected:
-  // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
-  uint64_t capacity_;
-  bool error_ {};
+  // 共享状态模式，所有状态被打包进一个结构体
+  struct ByteStreamImpl {
+    uint64_t capacity_;
+
+    bool error_ {false};
+    bool end_input_ {false};
+
+    // 记录两侧处理的size大小
+    uint64_t written_size_ {0};
+    uint64_t read_size_ {0};
+
+    // deque，维护两端
+    std::deque<std::string> buffer_;
+    uint64_t front_offset_ {0};   // 记录首个分块的读取偏移量
+    uint64_t bytes_buffered_ {0}; // 记录当前buffer里的字节总数(string作为分块掩盖了size)
+
+    explicit ByteStreamImpl(uint64_t _capacity) : capacity_(_capacity), buffer_() {}
+  };
+
+  std::shared_ptr<ByteStreamImpl> impl_;
 };
 
 class Writer : public ByteStream
