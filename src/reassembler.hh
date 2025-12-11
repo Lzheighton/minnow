@@ -1,12 +1,15 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include <cstdint>
+#include <map>
+#include <string>
 
 class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ) {}
+  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ), str_buffer_() {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -43,4 +46,17 @@ public:
 
 private:
   ByteStream output_;
+  std::map<uint64_t, std::string> str_buffer_;
+
+  // 维护当前应该填入的索引
+  uint64_t cur_index_ { 0 };
+
+  uint64_t end_index_ { 0 };
+  bool have_got_end_index_ { false };
+
+  // 辅助函数：从缓冲区写入连续数据
+  void drain_buffer();
+
+  // 辅助函数：处理缓存时的去重逻辑
+  void merge_into_buffer( uint64_t& first_index, std::string& data );
 };
