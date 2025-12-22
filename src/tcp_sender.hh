@@ -4,6 +4,7 @@
 #include "tcp_receiver_message.hh"
 #include "tcp_sender_message.hh"
 
+#include <cstdint>
 #include <functional>
 
 class TCPSender
@@ -11,7 +12,11 @@ class TCPSender
 public:
   /* Construct TCP sender with given default Retransmission Timeout and possible ISN */
   TCPSender( ByteStream&& input, Wrap32 isn, uint64_t initial_RTO_ms )
-    : input_( std::move( input ) ), isn_( isn ), initial_RTO_ms_( initial_RTO_ms )
+    : input_( std::move( input ) )
+    , isn_( isn )
+    , initial_RTO_ms_( initial_RTO_ms )
+    , outstanding_segments()
+    , current_RTO_( initial_RTO_ms )
   {}
 
   /* Generate an empty TCPSenderMessage */
@@ -42,4 +47,20 @@ private:
   ByteStream input_;
   Wrap32 isn_;
   uint64_t initial_RTO_ms_;
+
+  // 状态量
+  bool FIN_sent { false };            // FIN包是否已经发送
+  uint64_t current_seqno_ { 0 };      // 当前的绝对序列号
+  uint64_t sender_ackno_ { 0 };       // 接收端返回的ackno，receive更新
+  uint16_t sender_window_size_ { 1 }; // 同上，window size，需要遵照F&Q初始化为1
+
+  // 监听还在飞的数据段
+  std::deque<std::pair<uint64_t, TCPSenderMessage>> outstanding_segments;
+
+  // 计时器
+  size_t current_RTO_ { 0 };                  // 当前RTO（指数退缩）
+  size_t consecutive_retransimissions_ { 0 }; // 当前超时重传次数
+
+  bool timer_running_ { false }; // 判断当前计时器是否正在运行
+  size_t time_elapsed_ { 0 };    // 计时器启动后经过时间
 };
