@@ -17,6 +17,10 @@ start_tun () {
     # Apply NAT (masquerading) only to traffic from CS144's network devices
     iptables -t nat -A PREROUTING -s ${TUN_IP_PREFIX}.${TUNNUM}.0/24 -j CONNMARK --set-mark ${TUNNUM}
     iptables -t nat -A POSTROUTING -j MASQUERADE -m connmark --mark ${TUNNUM}
+
+    # Allow traffic to traverse FORWARD even if policy is DROP (e.g., Docker installs DROP)
+    iptables -C FORWARD -i "${TUNDEV}" -j ACCEPT 2>/dev/null || iptables -I FORWARD -i "${TUNDEV}" -j ACCEPT
+    iptables -C FORWARD -o "${TUNDEV}" -j ACCEPT 2>/dev/null || iptables -I FORWARD -o "${TUNDEV}" -j ACCEPT
     echo 1 > /proc/sys/net/ipv4/ip_forward
 }
 
@@ -24,6 +28,8 @@ stop_tun () {
     local TUNDEV="tun$1"
     iptables -t nat -D PREROUTING -s ${TUN_IP_PREFIX}.${1}.0/24 -j CONNMARK --set-mark ${1}
     iptables -t nat -D POSTROUTING -j MASQUERADE -m connmark --mark ${1}
+    iptables -D FORWARD -i "${TUNDEV}" -j ACCEPT 2>/dev/null
+    iptables -D FORWARD -o "${TUNDEV}" -j ACCEPT 2>/dev/null
     ip tuntap del mode tun name "$TUNDEV"
 }
 

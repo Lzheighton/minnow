@@ -1,5 +1,6 @@
 #include "address.hh"
 #include "debug.hh"
+#include "tcp_minnow_socket.hh"
 #include "socket.hh"
 
 #include <cstdlib>
@@ -17,7 +18,9 @@ void get_URL( const string& host, const string& path )
 
   // 建立TCPSocket连接
   Address target( host, "http" );
-  TCPSocket http_tcp;
+
+  CS144TCPSocket http_tcp;
+  // TCPSocket http_tcp;
   http_tcp.connect( target );
 
   // 跟telnet一样，向TCPSocket直接写入HTTP报文
@@ -31,6 +34,7 @@ void get_URL( const string& host, const string& path )
   }
 
   http_tcp.close();
+  http_tcp.wait_until_closed();
 }
 } // namespace
 
