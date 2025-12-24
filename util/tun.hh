@@ -4,6 +4,7 @@
 
 #include <string>
 
+// Linux Kernel TUN虚拟网卡的交互接口：文件描述符
 //! A FileDescriptor to a [Linux TUN/TAP](https://www.kernel.org/doc/Documentation/networking/tuntap.txt) device
 class TunTapFD : public FileDescriptor
 {

@@ -5,7 +5,6 @@
 #include "parser.hh"
 #include "ref.hh"
 
-#include <numeric>
 #include <ranges>
 #include <string>
 #include <vector>
@@ -20,7 +19,8 @@ std::vector<Ref<std::string>> serialize( const T& obj )
   return s.finish();
 }
 
-// Helper to parse any object (without constructing a Parser of the caller's own). Returns true if successful.
+// 辅助函数，超高泛型程度，各个类的通用接口，封装从若干缓冲区中的解析对象的样板流程
+// std::forward 完美转发 左/右值，只要求泛型T拥有函数parse
 // example:
 //   ```
 //   InternetDatagram internet_datagram;

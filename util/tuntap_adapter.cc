@@ -5,9 +5,11 @@ using namespace std;
 
 optional<TCPMessage> TCPOverIPv4OverTunFdAdapter::read()
 {
+  // 文件描述符传参方式，strs为string数组，1号位和2号位分别为IP和TCP header
   vector<string> strs( 3 );
   strs[0].resize( IPv4Header::LENGTH );
   strs[1].resize( TCPSegment::HEADER_LENGTH );
+
   _tun.read( strs );
 
   InternetDatagram ip_dgram;
